@@ -1,26 +1,17 @@
 # Glean seeds — the roots of your literature graph.
 #
-# fetch.py pulls each seed's references + citations, so a handful of well-chosen
-# seeds is enough. You can seed by TITLE or by ID.
+# Placeholders removed. Waiting for your actual seed papers.
 #
-# By title (easiest — just paste your reading list):
+# You can seed by TITLE or by ID (paperId / DOI:... / ARXIV:...). fetch.py resolves
+# titles to the best Semantic Scholar match. Entries that don't resolve are skipped
+# with a warning. Tip: set SEMANTIC_SCHOLAR_API_KEY (free) so fetching isn't throttled.
+#
+# Example shape (do not fetch on these — they're just illustration):
 #   papers:
-#     - title: "Attention Is All You Need"
-#     - title: "BERT: Pre-training of Deep Bidirectional Transformers"
-#   fetch.py resolves each title to its best match on Semantic Scholar.
-#
-# By ID (exact — a 40-char hex paperId, or CORPUSID:.../DOI:.../ARXIV:...):
-#     - id: "204e3073870fae3d05bcbc2f6a8e263d9b72e776"
-#       note: "optional note to yourself"
-#
-# Titles/IDs that don't resolve are skipped with a warning — they never break a run.
-# Tip: set SEMANTIC_SCHOLAR_API_KEY (free) so fetching is fast and not rate-limited.
+#     - title: "Some paper you care about"
+#     - id: "DOI:10.1000/xyz"
+#       note: "optional note"
 
-papers:
-  - title: "Attention Is All You Need"
-  - title: "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding"
+papers: []
 
-authors:
-  # - id: "1741101"        # Semantic Scholar author ID
-  #   name: "Yoshua Bengio"
-  #   note: "example — uncomment and replace with authors you follow"
+authors: []
