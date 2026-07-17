@@ -1,15 +1,13 @@
-/* add.js — the "add paper" box + GitHub token settings.
+/* add.js — the "add paper" box + inline GitHub token connect.
  *
- * Type a title or DOI → it's looked up on Semantic Scholar for a preview, then
- * appended to data/added.json in your repo (via gh.js). The Actions workflow picks
- * it up, resolves + scores it, and redeploys. The paper also shows immediately in
- * your feed (optimistic), so you don't wait on CI to see it.
+ * Type a title or DOI → previewed on Semantic Scholar, shown immediately in the
+ * table, and appended to data/added.json in your repo (via gh.js). The Actions
+ * workflow resolves + scores it and redeploys. No modals, no YAML editing.
  */
 (function () {
   const S2 = "https://api.semanticscholar.org/graph/v1";
   const FIELDS = "paperId,title,authors,year,abstract,url,venue,citationCount";
 
-  // Extract a DOI or arXiv id from free text; else treat input as a title.
   function classify(q) {
     const doi = q.match(/10\.\d{4,9}\/\S+/i);
     if (doi) return { kind: "id", value: "DOI:" + doi[0].replace(/[.,]$/, "") };
@@ -18,40 +16,27 @@
     return { kind: "title", value: q.trim() };
   }
 
-  // Best-effort Semantic Scholar lookup for an instant preview. Returns null on any
-  // failure (CORS, rate limit) — the paper is still committed and CI resolves it.
   async function resolveS2(item) {
     try {
-      let url;
-      if (item.kind === "id") {
-        url = `${S2}/paper/${encodeURIComponent(item.value)}?fields=${FIELDS}`;
-      } else {
-        url = `${S2}/paper/search/match?query=${encodeURIComponent(item.value)}&fields=${FIELDS}`;
-      }
+      const url = item.kind === "id"
+        ? `${S2}/paper/${encodeURIComponent(item.value)}?fields=${FIELDS}`
+        : `${S2}/paper/search/match?query=${encodeURIComponent(item.value)}&fields=${FIELDS}`;
       const res = await fetch(url);
       if (!res.ok) return null;
       const data = await res.json();
       return item.kind === "id" ? data : (data.data && data.data[0]) || null;
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   }
 
-  function s2ToPaper(obj) {
+  function s2ToPaper(o) {
     return {
-      id: obj.paperId,
-      title: obj.title || "(untitled)",
-      authors: (obj.authors || []).map((a) => a.name).filter(Boolean),
-      year: obj.year,
-      abstract: obj.abstract || "",
-      url: obj.url || `https://www.semanticscholar.org/paper/${obj.paperId}`,
-      venue: obj.venue || "",
-      citation_count: obj.citationCount || 0,
-      relevance_score: 1.0,
-      date_added: new Date().toISOString().slice(0, 10),
-      seen: false,
-      pinned: false,
-      is_seed: true,
+      id: o.paperId, title: o.title || "(untitled)",
+      authors: (o.authors || []).map((a) => a.name).filter(Boolean),
+      year: o.year, abstract: o.abstract || "",
+      url: o.url || `https://www.semanticscholar.org/paper/${o.paperId}`,
+      venue: o.venue || "", citation_count: o.citationCount || 0,
+      relevance_score: 1.0, date_added: new Date().toISOString().slice(0, 10),
+      seen: false, pinned: false, is_seed: true,
     };
   }
 
@@ -59,11 +44,10 @@
     query = query.trim();
     if (!query) return;
     if (!Glean.gh.hasToken()) {
-      Glean.toast("Connect your GitHub token first (⚙) so adds can save.");
-      openSettings();
+      Glean.toast("Connect a GitHub token first (top-right) so adds can save.");
+      openToken();
       return;
     }
-
     const item = classify(query);
     const entry = item.kind === "id" ? { id: item.value } : { title: item.value };
 
@@ -71,12 +55,12 @@
     const resolved = await resolveS2(item);
     if (resolved && resolved.paperId) {
       entry.note = "added from the site";
-      // Show it immediately in the feed (optimistic).
       const paper = s2ToPaper(resolved);
       if (!Glean.state.byId[paper.id]) {
         Glean.state.papers.push(paper);
         Glean.state.byId[paper.id] = paper;
       }
+      Glean.render();
     }
 
     try {
@@ -84,7 +68,6 @@
         "data/added.json",
         (arr) => {
           const list = Array.isArray(arr) ? arr : [];
-          // De-dupe by title/id text.
           const key = (e) => (e.id || e.title || "").toLowerCase();
           if (!list.some((e) => key(e) === key(entry))) list.push(entry);
           return list;
@@ -92,50 +75,44 @@
         `add paper: ${resolved ? resolved.title : query}`.slice(0, 72),
         []
       );
-    } catch (e) {
-      Glean.toast("Save failed: " + e.message);
-      return;
-    }
+    } catch (e) { Glean.toast("Save failed: " + e.message); return; }
 
-    Glean.updateStats();
-    Glean.renderFeed();
-    Glean.toast(
-      resolved
-        ? `Added: ${resolved.title.slice(0, 50)} — refreshing shortly`
-        : `Added "${query.slice(0, 40)}" — will resolve on the next refresh`
-    );
+    Glean.toast(resolved
+      ? `Added: ${resolved.title.slice(0, 50)} — refreshing shortly`
+      : `Added "${query.slice(0, 40)}" — will resolve on the next refresh`);
   }
 
-  /* ---------- token settings ---------- */
-  function openSettings() {
-    document.getElementById("settings").hidden = false;
+  /* ---------- inline token connect ---------- */
+  function openToken() {
+    const area = document.getElementById("token-area");
+    area.hidden = false;
     const inp = document.getElementById("token-input");
     inp.value = Glean.gh.getToken();
     inp.focus();
   }
-  function closeSettings() {
-    document.getElementById("settings").hidden = true;
+  function toggleToken() {
+    const area = document.getElementById("token-area");
+    if (area.hidden) openToken(); else area.hidden = true;
   }
   async function saveToken() {
     const status = document.getElementById("token-status");
     const t = document.getElementById("token-input").value.trim();
     Glean.gh.setToken(t);
-    if (!t) { status.textContent = "Token cleared."; Glean.reflectToken(); return; }
-    status.textContent = "Checking…";
+    if (!t) { status.textContent = "cleared"; Glean.reflectToken(); return; }
+    status.textContent = "checking…";
     try {
       await Glean.gh.check();
-      status.textContent = `✓ Connected to ${Glean.gh.owner}/${Glean.gh.repo}`;
+      status.textContent = `✓ connected to ${Glean.gh.owner}/${Glean.gh.repo}`;
       Glean.reflectToken();
-      setTimeout(closeSettings, 900);
-    } catch (e) {
-      status.textContent = "✗ " + e.message;
-    }
+    } catch (e) { status.textContent = "✗ " + e.message; }
   }
 
-  // Reflect connection state in the ⚙ button.
   Glean.reflectToken = function () {
-    const btn = document.getElementById("settings-btn");
-    if (btn) btn.classList.toggle("connected", Glean.gh.hasToken());
+    const btn = document.getElementById("connect-toggle");
+    if (btn) {
+      btn.classList.toggle("connected", Glean.gh.hasToken());
+      btn.textContent = Glean.gh.hasToken() ? "connected" : "connect";
+    }
   };
 
   Glean.initAdd = function () {
@@ -145,8 +122,7 @@
       addPaper(inp.value);
       inp.value = "";
     });
-    document.getElementById("settings-btn").addEventListener("click", openSettings);
-    document.getElementById("settings-close").addEventListener("click", closeSettings);
+    document.getElementById("connect-toggle").addEventListener("click", toggleToken);
     document.getElementById("token-save").addEventListener("click", saveToken);
     Glean.reflectToken();
   };

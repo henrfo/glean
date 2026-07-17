@@ -3,96 +3,68 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>glean — a personal research OS</title>
+  <title>glean</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <span class="logo">glean</span>
-      <span class="tagline">papers in · positions out</span>
+  <header>
+    <div class="header-row">
+      <div class="brand"><span class="logo">glean</span><span class="tagline">papers in · positions out</span></div>
+      <nav class="header-right">
+        <a class="meta-link" href="https://github.com/henrfo/glean" target="_blank" rel="noopener">repo</a>
+        <button class="linkbtn" id="connect-toggle">connect</button>
+      </nav>
     </div>
-    <nav class="tabs" id="tabs">
-      <button class="tab is-active" data-view="feed">Feed</button>
-      <button class="tab" data-view="graph">Graph</button>
-      <button class="tab" data-view="threads">Threads</button>
-    </nav>
-    <div class="toolbar">
-      <span class="stats" id="stats">loading…</span>
+
+    <div class="token-area" id="token-area" hidden>
+      <input id="token-input" type="password" placeholder="github_pat_… (Contents: read & write)" autocomplete="off" />
+      <button class="linkbtn" id="token-save">save</button>
+      <a class="meta-link" href="https://github.com/settings/tokens?type=beta" target="_blank" rel="noopener">create token ↗</a>
+      <span class="token-status" id="token-status"></span>
+    </div>
+
+    <div class="controls">
       <form class="add-box" id="add-box">
-        <input id="add-input" placeholder="Add a paper — title or DOI" autocomplete="off" />
-        <button class="btn" type="submit">Add</button>
+        <input id="add-input" placeholder="add a paper — title or DOI" autocomplete="off" />
       </form>
-      <button class="btn ghost settings-btn" id="settings-btn" title="Connect GitHub (⚙)">⚙</button>
+      <input class="search" id="search" placeholder="filter" autocomplete="off" />
     </div>
+
+    <ul class="legend">
+      <li><span class="dot dot-external"></span>9–10 · core</li>
+      <li><span class="dot dot-active"></span>7–8 · high</li>
+      <li><span class="dot dot-quiet"></span>4–6 · moderate</li>
+      <li><span class="dot dot-inactive"></span>0–3 · low</li>
+      <li><span class="dot dot-unknown"></span>unrated</li>
+    </ul>
   </header>
 
-  <!-- Token settings -->
-  <div class="modal" id="settings" hidden>
-    <div class="modal-card">
-      <h3>Connect your repo</h3>
-      <p>Paste a GitHub <b>fine-grained token</b> with <b>Contents: Read and write</b>
-         on your <code>glean</code> repo. It's stored only in this browser and sent
-         only to github.com — it's how adding, rating, and highlighting save
-         themselves.</p>
-      <input id="token-input" type="password" placeholder="github_pat_…" autocomplete="off" />
-      <div class="modal-actions">
-        <a class="r-link" href="https://github.com/settings/tokens?type=beta" target="_blank" rel="noopener">Create a token ↗</a>
-        <span style="flex:1"></span>
-        <button class="btn ghost" id="settings-close">Close</button>
-        <button class="btn" id="token-save">Save</button>
-      </div>
-      <div id="token-status" class="hint"></div>
-    </div>
-  </div>
+  <section class="threads" id="threads" hidden>
+    <button class="threads-toggle" id="threads-toggle" aria-expanded="false">
+      <span class="tw" id="threads-caret">▸</span> Threads <span class="threads-count" id="threads-count"></span>
+    </button>
+    <div class="threads-body" id="threads-body" hidden></div>
+  </section>
 
-  <main class="layout">
-    <section class="content">
-      <!-- Feed view -->
-      <div class="view is-active" id="view-feed">
-        <div class="view-head">
-          <h2>Feed</h2>
-          <label class="filter">
-            <input type="checkbox" id="hide-seen" /> hide seen
-          </label>
-        </div>
-        <div id="feed-list" class="feed-list"></div>
-      </div>
+  <table class="paper-table">
+    <thead>
+      <tr>
+        <th class="col-rating sortable" data-sort="rating" title="Sort by rating">●</th>
+        <th class="sortable" data-sort="title">Title</th>
+        <th class="sortable" data-sort="authors">Authors</th>
+        <th class="col-year sortable" data-sort="year">Year</th>
+        <th class="col-thread">Thread</th>
+        <th class="col-seen sortable" data-sort="seen">Seen</th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
 
-      <!-- Graph view -->
-      <div class="view" id="view-graph">
-        <div class="view-head">
-          <h2>Citation graph</h2>
-          <span class="hint">seed papers glow · node size = relevance · click to read</span>
-        </div>
-        <svg id="graph-svg"></svg>
-      </div>
-
-      <!-- Threads view -->
-      <div class="view" id="view-threads">
-        <div class="view-head">
-          <h2>Threads</h2>
-          <span class="hint">where your thinking currently stands</span>
-        </div>
-        <div id="threads-list" class="threads-list"></div>
-      </div>
-    </section>
-
-    <!-- Reader panel -->
-    <aside class="reader" id="reader" hidden>
-      <button class="reader-close" id="reader-close" aria-label="Close">×</button>
-      <div id="reader-body"></div>
-    </aside>
-  </main>
-
+  <div class="meta" id="meta">loading…</div>
   <div class="toast" id="toast" hidden></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
   <script src="js/app.js"></script>
   <script src="js/gh.js"></script>
   <script src="js/add.js"></script>
-  <script src="js/graph.js"></script>
-  <script src="js/reader.js"></script>
-  <script src="js/threads.js"></script>
 </body>
 </html>

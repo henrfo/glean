@@ -31,6 +31,7 @@ API_BASE = "https://api.semanticscholar.org/graph/v1"
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 PAPERS_FILE = DATA_DIR / "papers.json"
 EDGES_FILE = DATA_DIR / "edges.json"
+RATINGS_FILE = DATA_DIR / "ratings.json"  # your 0–10 ratings from the site
 EMBED_CACHE = DATA_DIR / ".embeddings_cache.json"
 
 
@@ -157,7 +158,18 @@ def main() -> int:
     else:
         wc, we = 1.0, 0.0
 
+    # Your manual 0–10 ratings from the site are ground truth — they override the
+    # automated score for any paper you've rated.
+    ratings = load_json(RATINGS_FILE, {})
+    n_rated = 0
+
     for p in papers:
+        rid = ratings.get(p["id"])
+        if isinstance(rid, (int, float)):
+            p["relevance_score"] = round(rid / 10.0, 4)
+            p["rating"] = rid
+            n_rated += 1
+            continue
         if p.get("is_seed"):
             p["relevance_score"] = 1.0
             continue
@@ -169,10 +181,10 @@ def main() -> int:
 
     ranked = sorted(papers, key=lambda p: p["relevance_score"], reverse=True)
     print(f"scored {len(papers)} papers "
-          f"(citation w={wc:.2f}, embedding w={we:.2f}). Top 5:")
+          f"(citation w={wc:.2f}, embedding w={we:.2f}, {n_rated} rated). Top 5:")
     for p in ranked[:5]:
-        flag = " [seed]" if p.get("is_seed") else ""
-        print(f"  {p['relevance_score']:.3f}  {p['title'][:70]}{flag}")
+        tag = " [rated]" if "rating" in p else (" [seed]" if p.get("is_seed") else "")
+        print(f"  {p['relevance_score']:.3f}  {p['title'][:70]}{tag}")
     return 0
 
 

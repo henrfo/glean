@@ -44,9 +44,11 @@ glean/
 │       └── fetch.yml              # daily cron job
 ├── data/
 │   ├── seeds.yaml                 # seed papers + authors (user edits this)
+│   ├── added.json                 # papers added from the site's add-box
 │   ├── papers.json                # all fetched paper metadata
 │   ├── edges.json                 # citation links (directional)
-│   ├── highlights.json            # user annotations
+│   ├── ratings.json               # your 0–10 paper ratings (from the site)
+│   ├── highlights.json            # your annotations
 │   └── threads.json               # LLM-generated thread clusters
 ├── scripts/
 │   ├── fetch.py                   # Semantic Scholar API client
@@ -55,12 +57,11 @@ glean/
 ├── site/
 │   ├── index.html                 # main interface
 │   ├── css/
-│   │   └── style.css
+│   │   └── style.css              # openmritools design language (dark, hairline table)
 │   └── js/
-│       ├── app.js                 # main app logic
-│       ├── graph.js               # d3-force citation graph
-│       ├── reader.js              # paper reader + highlighting
-│       └── threads.js             # thread view + summaries
+│       ├── app.js                 # table UI, dot ratings, inline detail, threads, URL state
+│       ├── gh.js                  # GitHub-token persistence (ratings/highlights/added)
+│       └── add.js                 # add-paper box + Semantic Scholar lookup
 ├── CLAUDE.md                      # this file
 ├── pyproject.toml                 # dependencies (managed with uv)
 ├── uv.lock
