@@ -36,7 +36,10 @@ jobs:
       - name: Fetch literature
         env:
           SEMANTIC_SCHOLAR_API_KEY: ${{ secrets.SEMANTIC_SCHOLAR_API_KEY }}
-        run: uv run scripts/fetch.py
+        # Seeds-only for now (--limit 0): resolve every seed title, no citation
+        # neighborhood. Raise --limit (with a SEMANTIC_SCHOLAR_API_KEY secret) to
+        # pull references/citations and populate the graph edges.
+        run: uv run scripts/fetch.py --limit 0
 
       - name: Score relevance
         env:
