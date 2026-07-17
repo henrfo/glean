@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>glean — a personal research OS</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">glean</span>
+      <span class="tagline">papers in · positions out</span>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button class="tab is-active" data-view="feed">Feed</button>
+      <button class="tab" data-view="graph">Graph</button>
+      <button class="tab" data-view="threads">Threads</button>
+    </nav>
+    <div class="toolbar">
+      <span class="stats" id="stats">loading…</span>
+      <button class="btn ghost" id="import-btn" title="Import highlights.json">Import</button>
+      <button class="btn" id="export-btn" title="Download highlights.json to commit">Export</button>
+      <input type="file" id="import-file" accept="application/json" hidden />
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="content">
+      <!-- Feed view -->
+      <div class="view is-active" id="view-feed">
+        <div class="view-head">
+          <h2>Feed</h2>
+          <label class="filter">
+            <input type="checkbox" id="hide-seen" /> hide seen
+          </label>
+        </div>
+        <div id="feed-list" class="feed-list"></div>
+      </div>
+
+      <!-- Graph view -->
+      <div class="view" id="view-graph">
+        <div class="view-head">
+          <h2>Citation graph</h2>
+          <span class="hint">seed papers glow · node size = relevance · click to read</span>
+        </div>
+        <svg id="graph-svg"></svg>
+      </div>
+
+      <!-- Threads view -->
+      <div class="view" id="view-threads">
+        <div class="view-head">
+          <h2>Threads</h2>
+          <span class="hint">where your thinking currently stands</span>
+        </div>
+        <div id="threads-list" class="threads-list"></div>
+      </div>
+    </section>
+
+    <!-- Reader panel -->
+    <aside class="reader" id="reader" hidden>
+      <button class="reader-close" id="reader-close" aria-label="Close">×</button>
+      <div id="reader-body"></div>
+    </aside>
+  </main>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/graph.js"></script>
+  <script src="js/reader.js"></script>
+  <script src="js/threads.js"></script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# Glean pipeline dependencies
+requests>=2.31.0        # Semantic Scholar API client
+PyYAML>=6.0             # seeds.yaml parsing
+anthropic>=0.40.0       # Claude API thread synthesis (summarize.py)
+numpy>=1.24.0           # SPECTER embedding similarity in score.py

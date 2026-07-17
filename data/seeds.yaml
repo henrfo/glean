@@ -1,0 +1,19 @@
+# Glean seeds — the roots of your literature graph.
+#
+# Add Semantic Scholar paper IDs (the 40-char hex "paperId", or "CorpusID:12345",
+# "DOI:...", "arXiv:2401.00001") and author IDs you want to track. fetch.py pulls
+# each seed's references + citations, so a handful of well-chosen seeds is enough.
+#
+# Anything with a bad/unknown ID is skipped with a warning — it won't break the run.
+# Replace these examples with your own.
+
+papers:
+  - id: "204e3073870fae3d05bcbc2f6a8e263d9b72e776"
+    note: "Attention Is All You Need — the Transformer paper (example seed, replace me)"
+  - id: "arXiv:1810.04805"
+    note: "BERT — pretraining for language understanding (example seed, replace me)"
+
+authors:
+  # - id: "1741101"
+  #   name: "Yoshua Bengio"
+  #   note: "example — uncomment and replace with authors you follow"
