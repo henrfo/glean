@@ -1,5 +1,9 @@
 # CLAUDE.md — Glean
 
+## Project location
+This repo lives at `~/Desktop/Desktop_M2/Projects_25/glean`.
+Never create the project or its directories anywhere else.
+
 ## What is this
 
 Glean is a personal research OS. Papers go in, your evolving positions come out.
