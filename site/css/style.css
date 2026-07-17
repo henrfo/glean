@@ -166,6 +166,36 @@ body {
 
 .empty { color: var(--muted); font-size: 14px; padding: 40px 0; text-align: center; }
 
+/* ---------- add box + settings ---------- */
+.add-box { display: flex; gap: 6px; align-items: center; }
+.add-box input {
+  width: 230px; max-width: 40vw;
+  background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+  padding: 6px 12px; border-radius: var(--radius); font-size: 13px; font-family: var(--font);
+}
+.add-box input:focus { outline: none; border-color: var(--accent); }
+.settings-btn.connected { color: var(--seed); border-color: var(--seed); }
+
+.modal {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal[hidden] { display: none; }
+.modal-card {
+  background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 22px 24px; max-width: 460px; width: 100%;
+}
+.modal-card h3 { margin: 0 0 10px; font-size: 17px; }
+.modal-card p { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 0 0 14px; }
+.modal-card code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; font-family: var(--mono); font-size: 12px; }
+.modal-card input {
+  width: 100%; background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+  padding: 9px 12px; border-radius: var(--radius); font-size: 13px; font-family: var(--mono);
+}
+.modal-actions { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+#token-status { margin-top: 12px; }
+
 /* ---------- toast ---------- */
 .toast {
   position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);

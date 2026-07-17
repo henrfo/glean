@@ -31,6 +31,7 @@ import yaml
 API_BASE = "https://api.semanticscholar.org/graph/v1"
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 SEEDS_FILE = DATA_DIR / "seeds.yaml"
+ADDED_FILE = DATA_DIR / "added.json"  # papers added from the site's add-box
 PAPERS_FILE = DATA_DIR / "papers.json"
 EDGES_FILE = DATA_DIR / "edges.json"
 
@@ -218,10 +219,18 @@ def main() -> int:
     args = ap.parse_args()
 
     seeds = load_json_yaml(SEEDS_FILE)
-    seed_papers = seeds.get("papers") or []
+    seed_papers = list(seeds.get("papers") or [])
     seed_authors = seeds.get("authors") or []
+
+    # Papers added from the site's "add paper" box land in data/added.json
+    # (written by the browser via the GitHub API). Treat them as seeds too.
+    added = load_json(ADDED_FILE, [])
+    if added:
+        print(f"including {len(added)} paper(s) from data/added.json")
+        seed_papers.extend(added)
+
     if not seed_papers and not seed_authors:
-        print("No seeds in data/seeds.yaml — add some paper/author IDs first.")
+        print("No seeds in data/seeds.yaml (or data/added.json) — add some first.")
         return 1
 
     session = make_session()

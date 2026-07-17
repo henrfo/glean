@@ -19,11 +19,32 @@
     </nav>
     <div class="toolbar">
       <span class="stats" id="stats">loading…</span>
-      <button class="btn ghost" id="import-btn" title="Import highlights.json">Import</button>
-      <button class="btn" id="export-btn" title="Download highlights.json to commit">Export</button>
-      <input type="file" id="import-file" accept="application/json" hidden />
+      <form class="add-box" id="add-box">
+        <input id="add-input" placeholder="Add a paper — title or DOI" autocomplete="off" />
+        <button class="btn" type="submit">Add</button>
+      </form>
+      <button class="btn ghost settings-btn" id="settings-btn" title="Connect GitHub (⚙)">⚙</button>
     </div>
   </header>
+
+  <!-- Token settings -->
+  <div class="modal" id="settings" hidden>
+    <div class="modal-card">
+      <h3>Connect your repo</h3>
+      <p>Paste a GitHub <b>fine-grained token</b> with <b>Contents: Read and write</b>
+         on your <code>glean</code> repo. It's stored only in this browser and sent
+         only to github.com — it's how adding, rating, and highlighting save
+         themselves.</p>
+      <input id="token-input" type="password" placeholder="github_pat_…" autocomplete="off" />
+      <div class="modal-actions">
+        <a class="r-link" href="https://github.com/settings/tokens?type=beta" target="_blank" rel="noopener">Create a token ↗</a>
+        <span style="flex:1"></span>
+        <button class="btn ghost" id="settings-close">Close</button>
+        <button class="btn" id="token-save">Save</button>
+      </div>
+      <div id="token-status" class="hint"></div>
+    </div>
+  </div>
 
   <main class="layout">
     <section class="content">
@@ -68,6 +89,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/gh.js"></script>
+  <script src="js/add.js"></script>
   <script src="js/graph.js"></script>
   <script src="js/reader.js"></script>
   <script src="js/threads.js"></script>

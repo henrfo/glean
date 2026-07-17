@@ -218,13 +218,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
   document.getElementById("hide-seen").addEventListener("change", Glean.renderFeed);
   document.getElementById("reader-close").addEventListener("click", Glean.closeReader);
-  document.getElementById("export-btn").addEventListener("click", Glean.exportHighlights);
-  document.getElementById("import-btn").addEventListener("click", () =>
-    document.getElementById("import-file").click());
-  document.getElementById("import-file").addEventListener("change", (e) => {
-    if (e.target.files[0]) Glean.importHighlights(e.target.files[0]);
-    e.target.value = "";
-  });
+  Glean.initAdd();
 
   await Glean.loadData();
   Glean.updateStats();
