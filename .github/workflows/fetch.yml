@@ -26,22 +26,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.12"
-          cache: pip
+          enable-cache: true
 
-      - run: pip install -r requirements.txt
+      - run: uv sync
 
       - name: Fetch literature
         env:
           SEMANTIC_SCHOLAR_API_KEY: ${{ secrets.SEMANTIC_SCHOLAR_API_KEY }}
-        run: python scripts/fetch.py
+        run: uv run scripts/fetch.py
 
       - name: Score relevance
         env:
           SEMANTIC_SCHOLAR_API_KEY: ${{ secrets.SEMANTIC_SCHOLAR_API_KEY }}
-        run: python scripts/score.py
+        run: uv run scripts/score.py
 
       - name: Commit updated corpus
         run: |

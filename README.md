@@ -38,6 +38,7 @@ flat JSON files in `data/` are the database, so your research history is a git h
 
 | Path | What it is |
 |------|-----------|
+| `pyproject.toml` · `uv.lock` | Dependencies, managed with uv |
 | `data/seeds.yaml` | Seed papers + authors — **you edit this** |
 | `data/papers.json` · `edges.json` | Fetched metadata + citation graph |
 | `data/highlights.json` · `threads.json` | Your annotations + LLM-clustered threads |
@@ -49,21 +50,23 @@ flat JSON files in `data/` are the database, so your research history is a git h
 
 ## Quickstart
 
+Uses [uv](https://docs.astral.sh/uv/). `uv run` installs deps from the lockfile on first use — no manual venv.
+
 ```bash
-pip install -r requirements.txt
+uv sync                             # install deps into .venv from uv.lock
 
 # 1. Edit data/seeds.yaml — add Semantic Scholar paper IDs you care about
 # 2. Fetch the surrounding literature
-python scripts/fetch.py
+uv run scripts/fetch.py
 
 # 3. Score papers by relevance to your seeds
-python scripts/score.py
+uv run scripts/score.py
 
 # 4. Read & highlight in the browser
-cd site && python -m http.server 8000     # → http://localhost:8000
+python3 -m http.server 8000 -d site       # → http://localhost:8000
 
 # 5. Synthesize highlights into threads (needs ANTHROPIC_API_KEY)
-python scripts/summarize.py
+uv run scripts/summarize.py
 ```
 
 ## Environment

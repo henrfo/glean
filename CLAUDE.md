@@ -58,7 +58,8 @@ glean/
 │       ├── reader.js              # paper reader + highlighting
 │       └── threads.js             # thread view + summaries
 ├── CLAUDE.md                      # this file
-├── requirements.txt
+├── pyproject.toml                 # dependencies (managed with uv)
+├── uv.lock
 └── README.md
 ```
 
@@ -169,21 +170,23 @@ authors:
 
 ## Commands for the developer
 
+Dependencies are managed with [uv](https://docs.astral.sh/uv/) (`pyproject.toml` + `uv.lock`).
+
 ```bash
 # Install dependencies
-pip install -r requirements.txt
+uv sync
 
 # Run the fetch pipeline manually
-python scripts/fetch.py
+uv run scripts/fetch.py
 
 # Score papers
-python scripts/score.py
+uv run scripts/score.py
 
 # Generate thread summaries (requires ANTHROPIC_API_KEY)
-python scripts/summarize.py
+uv run scripts/summarize.py
 
 # Serve the site locally
-cd site && python -m http.server 8000
+python3 -m http.server 8000 -d site
 ```
 
 ## Environment variables

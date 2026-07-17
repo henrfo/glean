@@ -1,0 +1,17 @@
+[project]
+name = "glean"
+version = "0.1.0"
+description = "A personal research OS — papers in, positions out."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.31.0",   # Semantic Scholar API client (fetch.py)
+    "pyyaml>=6.0",        # seeds.yaml parsing (fetch.py)
+    "anthropic>=0.40.0",  # Claude API thread synthesis (summarize.py)
+    "numpy>=1.24.0",      # SPECTER embedding similarity (score.py)
+]
+
+# Scripts live in scripts/ and are run with `uv run scripts/<name>.py`;
+# there's no importable package to build.
+[tool.uv]
+package = false
