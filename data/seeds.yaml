@@ -1,19 +1,26 @@
 # Glean seeds — the roots of your literature graph.
 #
-# Add Semantic Scholar paper IDs (the 40-char hex "paperId", or "CorpusID:12345",
-# "DOI:...", "arXiv:2401.00001") and author IDs you want to track. fetch.py pulls
-# each seed's references + citations, so a handful of well-chosen seeds is enough.
+# fetch.py pulls each seed's references + citations, so a handful of well-chosen
+# seeds is enough. You can seed by TITLE or by ID.
 #
-# Anything with a bad/unknown ID is skipped with a warning — it won't break the run.
-# Replace these examples with your own.
+# By title (easiest — just paste your reading list):
+#   papers:
+#     - title: "Attention Is All You Need"
+#     - title: "BERT: Pre-training of Deep Bidirectional Transformers"
+#   fetch.py resolves each title to its best match on Semantic Scholar.
+#
+# By ID (exact — a 40-char hex paperId, or CORPUSID:.../DOI:.../ARXIV:...):
+#     - id: "204e3073870fae3d05bcbc2f6a8e263d9b72e776"
+#       note: "optional note to yourself"
+#
+# Titles/IDs that don't resolve are skipped with a warning — they never break a run.
+# Tip: set SEMANTIC_SCHOLAR_API_KEY (free) so fetching is fast and not rate-limited.
 
 papers:
-  - id: "204e3073870fae3d05bcbc2f6a8e263d9b72e776"
-    note: "Attention Is All You Need — the Transformer paper (example seed, replace me)"
-  - id: "arXiv:1810.04805"
-    note: "BERT — pretraining for language understanding (example seed, replace me)"
+  - title: "Attention Is All You Need"
+  - title: "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding"
 
 authors:
-  # - id: "1741101"
+  # - id: "1741101"        # Semantic Scholar author ID
   #   name: "Yoshua Bengio"
   #   note: "example — uncomment and replace with authors you follow"

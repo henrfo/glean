@@ -49,33 +49,54 @@ def make_session() -> requests.Session:
     key = os.environ.get("SEMANTIC_SCHOLAR_API_KEY")
     if key:
         session.headers["x-api-key"] = key
+        # With a key you get a real quota; a light delay is plenty.
+        session.polite_delay = 0.3
+        session.retries = 5
+    else:
+        # The anonymous pool is shared across ALL keyless callers and 429s
+        # aggressively — pace hard and be very patient before giving up.
+        session.polite_delay = 1.2
+        session.retries = 8
+        print("note: no SEMANTIC_SCHOLAR_API_KEY set — using the shared anonymous\n"
+              "      rate limit, which is slow and often throttled. A free key makes\n"
+              "      this fast and reliable: https://www.semanticscholar.org/product/api\n",
+              file=sys.stderr)
     session.headers["User-Agent"] = "glean/0.1 (personal research OS)"
     return session
 
 
-def api_get(session: requests.Session, path: str, params: dict, *, retries: int = 4):
+def api_get(session: requests.Session, path: str, params: dict):
     """GET with polite backoff on rate limits. Returns parsed JSON or None on 404."""
     url = f"{API_BASE}/{path}"
-    delay = 1.0
+    retries = getattr(session, "retries", 8)
+    delay = 2.0
     for attempt in range(retries):
-        resp = session.get(url, params=params, timeout=30)
+        try:
+            resp = session.get(url, params=params, timeout=30)
+        except requests.RequestException as e:
+            print(f"  network error ({e.__class__.__name__}); retrying", file=sys.stderr)
+            time.sleep(delay)
+            delay = min(delay * 2, 60)
+            continue
         if resp.status_code == 404:
             return None
         if resp.status_code == 429:
             wait = float(resp.headers.get("Retry-After", delay))
-            print(f"  rate limited; waiting {wait:.0f}s", file=sys.stderr)
+            print(f"  rate limited; waiting {wait:.0f}s "
+                  f"(attempt {attempt + 1}/{retries})", file=sys.stderr)
             time.sleep(wait)
-            delay = min(delay * 2, 30)
+            delay = min(delay * 2, 60)
             continue
         if resp.status_code >= 500:
             time.sleep(delay)
-            delay = min(delay * 2, 30)
+            delay = min(delay * 2, 60)
             continue
         resp.raise_for_status()
-        # Be a good citizen even on success — free tier is 100 req / 5 min.
-        time.sleep(0.3)
+        # Be a good citizen even on success (pace set by whether we have a key).
+        time.sleep(getattr(session, "polite_delay", 1.0))
         return resp.json()
-    print(f"  giving up on {path} after {retries} attempts", file=sys.stderr)
+    print(f"  giving up on {path} after {retries} attempts "
+          f"(rate-limited — set SEMANTIC_SCHOLAR_API_KEY to fix)", file=sys.stderr)
     return None
 
 
@@ -110,6 +131,15 @@ def to_paper(obj: dict) -> dict | None:
 # --------------------------------------------------------------------------- #
 def fetch_paper(session, paper_id: str) -> dict | None:
     return api_get(session, f"paper/{paper_id}", {"fields": PAPER_FIELDS})
+
+
+def resolve_title(session, title: str) -> dict | None:
+    """Resolve a free-text title to the best-matching paper (S2 match endpoint)."""
+    data = api_get(session, "paper/search/match",
+                   {"query": title, "fields": PAPER_FIELDS})
+    if not data or not data.get("data"):
+        return None
+    return data["data"][0]  # best match first
 
 
 def fetch_related(session, paper_id: str, kind: str, limit: int) -> list[dict]:
@@ -162,6 +192,20 @@ def write_json(path: Path, obj) -> None:
     path.write_text(json.dumps(obj, indent=2, ensure_ascii=False) + "\n")
 
 
+# Semantic Scholar wants external-ID scheme prefixes uppercased
+# (ARXIV:..., DOI:..., PMID:...). Normalize common lowercase forms so
+# seeds.yaml entries like "arXiv:1810.04805" resolve.
+_ID_SCHEMES = ("ARXIV", "DOI", "MAG", "ACL", "PMID", "PMCID", "CORPUSID", "URL")
+
+
+def normalize_seed_id(raw: str) -> str:
+    if ":" in raw:
+        scheme, rest = raw.split(":", 1)
+        if scheme.upper() in _ID_SCHEMES:
+            return f"{scheme.upper()}:{rest}"
+    return raw
+
+
 # --------------------------------------------------------------------------- #
 # Main
 # --------------------------------------------------------------------------- #
@@ -206,11 +250,25 @@ def main() -> int:
 
     # --- seed papers: pull the paper itself + its references and citations ---
     for seed in seed_papers:
-        sid_raw = seed.get("id") if isinstance(seed, dict) else seed
-        if not sid_raw:
-            continue
-        print(f"seed paper: {sid_raw}")
-        obj = fetch_paper(session, sid_raw)
+        seed = seed if isinstance(seed, dict) else {"id": seed}
+        title = seed.get("title")
+        sid_raw = seed.get("id")
+
+        if not sid_raw and title:
+            # Resolve a free-text title to a paper ID.
+            print(f"seed title: {title}")
+            match = resolve_title(session, title)
+            if not match:
+                print(f"  ! no match for '{title}' — skipping", file=sys.stderr)
+                continue
+            obj = match
+            print(f"  → {obj.get('title')} ({obj.get('paperId')})")
+        else:
+            if not sid_raw:
+                continue
+            sid_raw = normalize_seed_id(str(sid_raw))
+            print(f"seed paper: {sid_raw}")
+            obj = fetch_paper(session, sid_raw)
         if not obj:
             print(f"  ! could not resolve '{sid_raw}' — skipping", file=sys.stderr)
             continue
