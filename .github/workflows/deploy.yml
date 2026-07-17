@@ -1,0 +1,41 @@
+name: deploy
+
+# Redeploy the site WITHOUT re-fetching — for interface changes and for browser-
+# written data (ratings, highlights, threads, digest). Seed changes go through
+# fetch.yml instead (which fetches, then deploys).
+on:
+  push:
+    paths:
+      - "site/**"
+      - "data/ratings.json"
+      - "data/highlights.json"
+      - "data/threads.json"
+      - "data/digest.md"
+  workflow_dispatch: {}
+
+permissions:
+  pages: write
+  id-token: write
+
+concurrency:
+  group: glean-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bundle data into the site
+        run: |
+          mkdir -p site/data
+          cp data/*.json site/data/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4

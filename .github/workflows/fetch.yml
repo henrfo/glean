@@ -10,7 +10,7 @@ on:
     paths:
       - "data/seeds.yaml"     # re-fetch whenever you change your seeds
       - "data/added.json"     # re-fetch when you add a paper from the site
-      - "site/**"             # redeploy on interface changes
+      # UI-only changes are handled by deploy.yml — no re-fetch needed.
 
 permissions:
   contents: write             # commit refreshed data/*.json
